@@ -1,0 +1,68 @@
+#start {
+    position: absolute;
+    font-family: Georgia, Times, serif;
+    font-size: 30px;
+    font-weight: bold;
+    border: 3px solid black;
+    background-color: darkgreen;
+    width : 120px;
+    height : 50px;
+    left: 40px;
+    border-radius: 10px;
+}
+#table {
+    visibility: hidden;
+    position: absolute;
+    left: 20px;
+    width : 80%;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid black;
+    font-family: sans-serif;
+    margin: 15px 0;
+}
+
+/* Header Row Styling */
+th {
+    background-color: grey;
+    color: white;
+    font-weight: bold;
+    text-align: left;
+    padding: 12px;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid black;
+}
+th:not(:first-child),
+td:not(:first-child) {
+    border-left: 1px solid black;
+}
+
+#table table button {
+    width: 95%;
+    border: none;
+    background-color: white;
+}
+#table table button:hover {
+    background-color: lightgrey;
+}
+#next {
+    position: relative;
+    top: 200px;
+    left: 20px;
+    width : 10%;
+    height : 40px;
+    background-color: lightgrey;
+    border: 2px solid black;
+    border-radius: 6px;
+    visibility: hidden;
+}
+#UI {
+    visibility: hidden;
+    position: relative;
+    left: 20px;
+}
