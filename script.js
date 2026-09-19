@@ -1,5 +1,7 @@
 const start = document.getElementById('start');
 const tableDiv = document.getElementById('table');
+const table = document.getElementById('theTable');
+const list = document.getElementById('list');
 const next = document.getElementById('next');
 const UI = document.getElementById('UI');
 const container = document.getElementById('container');
@@ -9,12 +11,41 @@ const third = document.getElementById('third');
 const fourth = document.getElementById('4.');
 const fifth = document.getElementById('5.');
 const sixth = document.getElementById('6.');
-const names = ["Aidan","Ben", "Bela", "Mats", "Pierkachu & Tim", "Tun"]
+const names = ["Aidan","Ben", "Bela", "Lenny", "Mats", "Pierkachu & Tim", "Tun",]
+let evenNumber;
 let time = 1;
 let rounds = 3;
-let roundFinished = null;
+let roundFinished;
 
-//defining table buttons
+function createTable() {
+    names.forEach((name) => {
+        players.push(new Player(name));
+    })
+
+    for (let i = 6; i < players.length; i+=2) {
+            const newLine = table.insertRow(-1)
+            let cell1 = newLine.insertCell(0);
+            let cell2 = newLine.insertCell(1);
+            let button1 = document.createElement('button');
+            let button2 = document.createElement('button');
+            button1.id = "b"+ (i + 1);
+            button2.id = "b"+ (i + 2);
+            tableButtons.push(button1, button2);
+            cell1.appendChild(button1);
+            cell2.appendChild(button2);
+
+        }
+    tableButtons.forEach((button, index) => {
+        button.addEventListener('click', (e) => {
+            roundWon(e.currentTarget, index);
+        })
+    })
+    evenNumber = players.length % 2 === 0;
+
+    console.log(evenNumber);
+}
+
+
 let tableButtons = [
     document.getElementById("b1"),
     document.getElementById("b2"),
@@ -23,11 +54,7 @@ let tableButtons = [
     document.getElementById("b5"),
     document.getElementById("b6"),
 ]
-tableButtons.forEach((button, index) => {
-    button.addEventListener('click', (e) => {
-        roundWon(e.currentTarget, index);
-    })
-})
+
 
 next.addEventListener('click', (e) => {
     if (!roundFinished) {
@@ -46,6 +73,7 @@ next.addEventListener('click', (e) => {
 })
 
 function roundWon(button, key) {
+
     const winner = players[key]
     let opponent = null;
     let secKey = null;
@@ -58,6 +86,7 @@ function roundWon(button, key) {
     }
 
     if (winner.isPlaying === true) {
+        console.log(key)
         winner.isPlaying = false;
         winner.points += 3;
         winner.wins++;
@@ -99,8 +128,6 @@ function roundWon(button, key) {
     }
 }
 
-
-
 //defining players
 class Player {
     constructor(name) {
@@ -114,6 +141,7 @@ class Player {
         this.ties = 0;
         this.points = 0;
         this.isPlaying = false;
+        this.byed = false;
         this.awr = 0;
         this.message = this.name + ": " + this.points + " (" + this.wins + "/" + this.ties + "/" + this.loses + ")";
     }
@@ -136,9 +164,6 @@ class Player {
     }
 }
 let players = [];
-names.forEach((name) => {
-    players.push(new Player(name));
-})
 
 //shuffling the array
 function shuffle(array) {
@@ -151,11 +176,33 @@ function shuffle(array) {
     }
     return array;
 }
+function bye(){
+    const possible = players.filter(p => p.byed === false)
+    const minPoints = Math.min(...possible.map((player) => player.points));
+    const chosen = possible.filter(p => p.points === minPoints)
+    let THE = chosen[Math.floor(Math.random() * chosen.length)];
+    console.log(possible)
+    THE.byed = true;
+    return THE;
 
+}
 function createMatchups(){
     players.sort((a, b) => b.points - a.points);
+    let mover;
+    let byePlayer;
+    if (!evenNumber) {
+        byePlayer = bye()
+        byePlayer.isPlaying = true;
+        byePlayer.wins++;
+        byePlayer.points+=3;
+        byePlayer.match = "win";
+        [mover] = players.splice(players.indexOf(byePlayer), 1);
+
+        console.log(byePlayer);
+    }
     for (let i = 0; i < players.length-1; i+=2) {
         let j = i + 1;
+
         while (!players[i].isPlaying && j < players.length) {
             if (!players[j].isPlaying && !players[i].matches.includes(players[j])) {
                 players[i].matches.push(players[j]);
@@ -189,6 +236,12 @@ function createMatchups(){
 
         // Fix array order visually: Swap index 3 and 4 so pairs sit side-by-side: [2 vs 4] and [3 vs 5]
         [players[3], players[4]] = [players[4], players[3]];
+    }
+    if (!evenNumber){
+        byePlayer.isPlaying = false;
+        players.push(mover);
+        tableButtons[players.indexOf(byePlayer)].style.backgroundColor = "green";
+
     }
     console.log(players);
 }
@@ -253,8 +306,13 @@ function newRound() {
     }
 }
 
-
+names.forEach((name) => {
+    const NEW = document.createElement("li");
+    NEW.innerHTML = name
+    list.appendChild(NEW)
+})
 
 start.addEventListener('click', () => {
+    createTable()
     newRound();
 })

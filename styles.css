@@ -12,7 +12,7 @@
 }
 #table {
     visibility: hidden;
-    position: absolute;
+    position: relative;
     left: 20px;
     width : 80%;
 }
@@ -52,7 +52,6 @@ td:not(:first-child) {
 }
 #next {
     position: relative;
-    top: 200px;
     left: 20px;
     width : 10%;
     height : 40px;
