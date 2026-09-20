@@ -11,7 +11,7 @@ const third = document.getElementById('third');
 const fourth = document.getElementById('4.');
 const fifth = document.getElementById('5.');
 const sixth = document.getElementById('6.');
-const names = ["Aidan","Ben", "Bela", "Lenny", "Mats", "Pierkachu & Tim", "Tun",]
+const names = ["Aidan","Ben", "Bela", "Lenny", "Mats", "Pierkachu & Tim", "Tun"]
 let evenNumber;
 let time = 1;
 let rounds = 3;
