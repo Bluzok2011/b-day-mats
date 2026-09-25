@@ -65,3 +65,15 @@ td:not(:first-child) {
     position: relative;
     left: 20px;
 }
+li.playerButton {
+    display: list-item;       /* Explicitly forces the browser to show bullet points */
+    list-style-type: disc;    /* Enforces the standard solid circle bullet point */
+    list-style-position: inside; /* Keeps the bullet grouped close to the text */
+    padding: 2px 0;
+    width: 200px;
+}
+button.dropButton {
+    float: right;
+    background-color: red;
+    border: 1px solid black;
+}

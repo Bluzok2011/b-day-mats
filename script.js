@@ -3,6 +3,9 @@ const tableDiv = document.getElementById('table');
 const table = document.getElementById('theTable');
 const list = document.getElementById('list');
 const next = document.getElementById('next');
+const input = document.getElementById('newPlayer');
+const addPlayer = document.getElementById('add');
+const inputRow = document.getElementById('inputRow');
 const UI = document.getElementById('UI');
 const container = document.getElementById('container');
 const messageUI = document.getElementById('message');
@@ -11,16 +14,50 @@ const third = document.getElementById('third');
 const fourth = document.getElementById('4.');
 const fifth = document.getElementById('5.');
 const sixth = document.getElementById('6.');
-const names = ["Aidan","Ben", "Bela", "Lenny", "Mats", "Pierkachu & Tim", "Tun",]
+let names = []
 let evenNumber;
 let time = 1;
 let rounds = 3;
 let roundFinished;
 
+addPlayer.addEventListener('click', () => {
+    playerAdd()
+})
+input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+        playerAdd()
+    }
+})
+function playerAdd() {
+    let str = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase();
+    if (str && !names.includes(str)) {
+        if (input.value === "Bluzokt2011POR26"){
+            list.replaceChildren()
+            list.appendChild(inputRow);
+            names = ["Aidan", "Ben", "Bela", "Bluzokt2011", "Mats", "Tun", "Pierkachu & Tim"]
+            input.value = '';
+            names.forEach(name => {
+                newPlayer(name)
+            })
+            createTable();
+            newRound();
+        } else {
+            names.push(str);
+            newPlayer(str);
+            input.value = '';
+            input.focus();
+        }
+    } else if (str) console.error(str +" is already playing");
+}
 function createTable() {
+    players = [];
+    dropper.forEach(player => {
+        player.style.display = 'none';
+    })
     names.forEach((name) => {
         players.push(new Player(name));
     })
+
 
     for (let i = 6; i < players.length; i+=2) {
             const newLine = table.insertRow(-1)
@@ -34,15 +71,16 @@ function createTable() {
             cell1.appendChild(button1);
             cell2.appendChild(button2);
 
-        }
+    }
     tableButtons.forEach((button, index) => {
         button.addEventListener('click', (e) => {
             roundWon(e.currentTarget, index);
         })
     })
     evenNumber = players.length % 2 === 0;
+    rounds = Math.ceil(Math.log2(players.length));
 
-    console.log(evenNumber);
+    console.log(rounds);
 }
 
 
@@ -55,8 +93,7 @@ let tableButtons = [
     document.getElementById("b6"),
 ]
 
-
-next.addEventListener('click', (e) => {
+next.addEventListener('click', () => {
     if (!roundFinished) {
         players.forEach((player, index) => {
             if (player.isPlaying) {
@@ -75,8 +112,8 @@ next.addEventListener('click', (e) => {
 function roundWon(button, key) {
 
     const winner = players[key]
-    let opponent = null;
-    let secKey = null;
+    let opponent;
+    let secKey;
     if (key % 2 === 0) {
          secKey = key + 1
         opponent = players[secKey];
@@ -132,6 +169,7 @@ function roundWon(button, key) {
 class Player {
     constructor(name) {
         this.name = name;
+        this.dropped = false;
         this.index = null;
         this.match = null;
         this.played = null;
@@ -143,6 +181,7 @@ class Player {
         this.isPlaying = false;
         this.byed = false;
         this.awr = 0;
+        this.OppAwr = 0;
         this.message = this.name + ": " + this.points + " (" + this.wins + "/" + this.ties + "/" + this.loses + ")";
     }
     update() {
@@ -151,16 +190,27 @@ class Player {
         if (this.matches.length > 0) {
             this.matches.forEach(opponent => {
                 // Calculate individual opponent win rate (treating ties as half a win)
-                let winRate = (opponent.wins + (opponent.ties * 0.5)) / 3;
+                let winRate = (opponent.wins + (opponent.ties * 0.5)) / opponent.matches.length;
                 totalOpponentWinRate += winRate;
             });
             // Get the average across all opponents, convert to a clean percentage string
-            this.awr = ((totalOpponentWinRate / this.matches.length) * 100).toFixed(0) + "%";
+            this.awr = ((totalOpponentWinRate / this.matches.length) * 100).toFixed(0);
         } else {
             this.awr = "0%";
         }
 
-        this.message = this.name + ": " + this.points + " (" + this.wins + "/" + this.ties + "/" + this.loses + ") [Opp. WR: " + this.awr + "]";
+        this.message = this.name + ": " + this.points + " (" + this.wins + "/" + this.ties + "/" + this.loses + ") [Opp. WR: " + this.awr + "%]";
+    }
+    update2(){
+        let totalOppOppWinRate = 0;
+
+        if (this.matches.length > 0) {
+            this.matches.forEach(opponent => {
+                totalOppOppWinRate += opponent.awr || 0;
+
+            });
+            this.OppAwr = totalOppOppWinRate / this.matches.length;
+        }
     }
 }
 let players = [];
@@ -183,7 +233,10 @@ function bye(){
     let THE = chosen[Math.floor(Math.random() * chosen.length)];
     console.log(possible)
     THE.byed = true;
-    return THE;
+    if (time === 1 && THE.name === "Mats") {
+        return bye();
+    }
+     else return THE;
 
 }
 function createMatchups(){
@@ -219,23 +272,25 @@ function createMatchups(){
         }
 
     }
-    if (!players[4].isPlaying || !players[5].isPlaying) {
+    let lastplayer = [players.length-1];
+    let playerBefore = [players.length - 2];
+    if (!players[playerBefore].isPlaying || !players[lastplayer].isPlaying) {
         // Un-pair the middle match (Index 2 and 3) to free them up
-        players[2].matches.pop();
-        players[3].matches.pop();
+        players[playerBefore-2].matches.pop();
+        players[playerBefore-1].matches.pop();
 
         // Force the leftover bottom players to match with the middle tier
-        // This guarantees everyone gets a valid, unplayed match in a 6-player, 3-round setup
-        players[2].matches.push(players[4]);
-        players[4].matches.push(players[2]);
+        // This guarantees everyone gets a valid, unplayed match in a 6-player, playerBefore-1-round setup
+        players[playerBefore-2].matches.push(players[playerBefore]);
+        players[playerBefore].matches.push(players[playerBefore-2]);
 
-        players[3].matches.push(players[5]);
-        players[5].matches.push(players[3]);
+        players[playerBefore-1].matches.push(players[lastplayer]);
+        players[lastplayer].matches.push(players[playerBefore-1]);
 
-        players[2].isPlaying = players[3].isPlaying = players[4].isPlaying = players[5].isPlaying = true;
+        players[playerBefore-2].isPlaying = players[playerBefore-1].isPlaying = players[playerBefore].isPlaying = players[lastplayer].isPlaying = true;
 
-        // Fix array order visually: Swap index 3 and 4 so pairs sit side-by-side: [2 vs 4] and [3 vs 5]
-        [players[3], players[4]] = [players[4], players[3]];
+        // Fix array order visually: Swap index playerBefore-1 and playerBefore so pairs sit side-by-side: [2 vs playerBefore] and [playerBefore-1 vs 5]
+        [players[playerBefore-1], players[playerBefore]] = [players[playerBefore], players[playerBefore-1]];
     }
     if (!evenNumber){
         byePlayer.isPlaying = false;
@@ -246,22 +301,20 @@ function createMatchups(){
     console.log(players);
 }
 
-function buchholz(player) {
-    return player.matches.reduce((sum, opponent) => sum + opponent.points, 0)
-}
-
+let dropper= [];
 //round function
 function newRound() {
     if (!(time > rounds)) {
         if (time === 1) {
             start.style.display = "none";
+            inputRow.style.display = "none";
             tableDiv.style.visibility = "visible";
             next.style.visibility = "visible";
             players = shuffle(players);
             createMatchups();
 
-            time = 2;
-        } else if (time < 4) {
+            time++;
+        } else if (time <= rounds) {
             tableButtons.forEach(button => {
                 button.style.backgroundColor = "white";
             })
@@ -279,6 +332,9 @@ function newRound() {
             player.update();
             tableButtons[player.index].innerHTML = player.message;
         })
+        players.forEach((player) => {
+            player.update2();
+        })
     } else {
         players.forEach((player) => {
             player.update();
@@ -290,7 +346,8 @@ function newRound() {
 
         players.sort((a, b) => {
             if (b.points !== a.points) return b.points - a.points
-            else return buchholz(b) - buchholz(a)
+            else if (b.awr !== a.awr) return b.awr - a.awr
+            else return b.OppAwr - a.OppAwr
         });
         if (players[0].name === "Pierkachu & Tim") messageUI.innerHTML = "The winners are " +players[0].message;
         else messageUI.innerHTML = "The winner is " +players[0].message;
@@ -305,14 +362,70 @@ function newRound() {
 
     }
 }
-
-names.forEach((name) => {
+function newPlayer(name){
     const NEW = document.createElement("li");
     NEW.innerHTML = name
-    list.appendChild(NEW)
+    NEW.classList.add("playerButton");
+    let dropButton = document.createElement("button");
+    dropButton.className = "dropButton";
+    dropButton.innerHTML = "DROP";
+    dropButton.addEventListener("click", () => {
+        if (dropButton.innerHTML === "DROP") {
+            if (time === 1) {
+                console.log(NEW.childNodes[0].data)
+                names.splice(names.indexOf(NEW.childNodes[0].data), 1)
+                NEW.remove();
+                console.log(names, players);
+            } else {
+                console.log(names, players);
+                let dropping = players.find((player) => player.name === NEW.childNodes[0].data);
+                if (dropping.isPlaying) {
+                    dropButton.innerHTML = "DROPPED";
+                    let key = players.indexOf(dropping);
+                    let secKey;
+                    let winner;
+                    if (key % 2 === 0) {
+                        secKey = key + 1
+                        winner = players[secKey];
+                    } else {
+                        secKey = key - 1
+                        winner = players[secKey]
+                    }
+
+                    dropping.dropped = true;
+                    console.log(dropping);
+
+
+                    winner.isPlaying = false;
+                    winner.points += 3;
+                    winner.wins++;
+                    winner.match = "win";
+                    tableButtons[key].style.backgroundColor = "red"
+                    tableButtons[secKey].style.backgroundColor = "green"
+                    dropping.isPlaying = false;
+                    dropping.loses++;
+                    dropping.match = "loss";
+
+                }
+
+            }
+        }
+    })
+    dropper.push(dropButton);
+    NEW.appendChild(dropButton);
+    inputRow.insertAdjacentElement("beforebegin", NEW)
+}
+names.forEach((name) => {
+    newPlayer(name);
+
 })
 
 start.addEventListener('click', () => {
-    createTable()
-    newRound();
+    if (names.length<6) console.error("You need to be at least 6 players! Player count: " + names.length);
+    else
+    {
+        createTable();
+        newRound();
+    }
 })
+input.focus()
